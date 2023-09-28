@@ -10,7 +10,7 @@ class CreateUser(schemas.BaseUserCreate):
     email: str | None
     role_id: int
     username: str
-    hashed_password: str
+    password: str
     is_active: bool | None = True
     is_superuser: bool | None = False
     is_verified: bool | None = False
@@ -40,7 +40,7 @@ class ReadUser(schemas.BaseUser[int]):
         orm_mode = True
 
 
-class Role(BaseModel):
+class RoleCreateGet(BaseModel):
     id: int
     name: str | None
 

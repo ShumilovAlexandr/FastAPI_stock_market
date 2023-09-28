@@ -7,9 +7,11 @@ from sqlalchemy.ext.asyncio import (AsyncSession,
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 from fastapi.testclient import TestClient
+from sqlalchemy import MetaData
 
 from src.main import app
 from src.auth.models import Base
+from src.database.db_conn import get_session
 from src.database.db_conn import (DB_HOST,
                                   DB_NAME,
                                   DB_PASS,
@@ -19,13 +21,14 @@ from src.database.db_conn import (DB_HOST,
 
 client = TestClient(app)
 
-DATABASE_URL = f"postgres+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}" \
+DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}" \
+               f":{DB_PORT}" \
                f"/{DB_NAME}"
 
-engine = create_async_engine(DATABASE_URL, popclass=NullPool)
+engine = create_async_engine(DATABASE_URL, poolclass=NullPool)
 async_session_maker = sessionmaker(engine, class_=AsyncSession,
                                    expire_on_commit=False)
-Base.metadata(bind=engine)
+Base.metadata.bind = engine
 
 
 async def override_get_async_session() -> AsyncGenerator[AsyncSession, None]:
