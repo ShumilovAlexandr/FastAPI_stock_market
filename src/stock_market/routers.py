@@ -6,8 +6,7 @@ from fastapi import (APIRouter,
                      Depends,
                      status,
                      HTTPException)
-from dash import  (Dash,
-                   html)
+from pathlib import Path
 
 from database.db_conn import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,8 +19,6 @@ router_market = APIRouter(
     tags=["api-market"]
 )
 
-
-dash_app = Dash(__name__)
 
 
 @router_market.get("/get_data")
@@ -42,8 +39,9 @@ async def get_data_from_stock_market(tiker: str):
                       f"&count=1000"
     try:
         data = httpx.get(url_marketstack).json()["data"]
-        df.to_excel('./market.xlsx',
-                    columns=["close", "volume", "symbol", "date"])
+        df = pd.DataFrame(data, columns=["open", "high", "low", "close",
+                                         "symbol", "date"])
+        df.to_csv('./market.csv', header=True, index=False)
         return data
     except httpx.RequestError:
         raise HTTPException(status_code=400,
@@ -51,13 +49,13 @@ async def get_data_from_stock_market(tiker: str):
                                    "рынка.")
 
 @router_market.get("/build_graph")
-async def build_linear_or_candle_graph():
+async def build_linear_or_candle_graph(tiker: str):
     """
     Получение ранее сохраненных данных из файла с директории и построение либо
     линейного, либо свечного графика.
     """
     try:
-        data = pd.read_excel('market.xlsx')
+        pass
         # TODO вот тут надо написать функционал для построения графика
 
 
