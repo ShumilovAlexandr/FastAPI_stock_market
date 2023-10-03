@@ -12,13 +12,13 @@ from database.db_conn import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.db_config import MARKETSTACK
+from stock_market.graph import AssetPrice
 
 
 router_market = APIRouter(
     prefix="/api-market",
     tags=["api-market"]
 )
-
 
 
 @router_market.get("/get_data")
@@ -49,23 +49,23 @@ async def get_data_from_stock_market(tiker: str):
                                    "рынка.")
 
 @router_market.get("/build_graph")
-async def build_linear_or_candle_graph(tiker: str):
+async def build_linear_or_candle_graph():
     """
     Получение ранее сохраненных данных из файла с директории и построение либо
     линейного, либо свечного графика.
     """
     try:
-        pass
-        # TODO вот тут надо написать функционал для построения графика
+        df = pd.read_csv("market.csv")
 
+        # Получаем тикер для вывода на графике.
+        tiker_activ = df['symbol'][0]
+        graph = AssetPrice("market.csv", tiker_activ)
 
-
-
-
-
+        # Отрисовывает сам график
+        graph.get_graph()
+        return {'message': "Построен график с курсом интересующего актива."}
     except httpx.RequestError:
         raise HTTPException(status_code=400,
-                            detail="Ошибка при попытке получения данных с "
-                                   "рынка.")
+                            detail="Ошибка при попытке построения графика.")
 
 
