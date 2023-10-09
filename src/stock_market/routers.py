@@ -6,7 +6,7 @@ from fastapi import (APIRouter,
                      Depends,
                      status,
                      HTTPException)
-from pathlib import Path
+from fastapi.responses import JSONResponse
 
 from database.db_conn import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,8 +39,9 @@ async def get_data_from_stock_market(tiker: str):
                       f"&count=1000"
     try:
         data = httpx.get(url_marketstack).json()["data"]
-        df = pd.DataFrame(data, columns=["open", "high", "low", "close",
-                                         "symbol", "date"])
+        df = pd.DataFrame(data,
+                          columns=["open", "high", "low", "close",
+                                    "symbol", "date"])
         df.to_csv('./market.csv', header=True, index=False)
         return data
     except httpx.RequestError:
@@ -51,8 +52,8 @@ async def get_data_from_stock_market(tiker: str):
 @router_market.get("/build_graph")
 async def build_linear_or_candle_graph():
     """
-    Получение ранее сохраненных данных из файла с директории и построение либо
-    линейного, либо свечного графика.
+    Получение ранее сохраненных данных из файла с директории и построение
+    свечного графика.
     """
     try:
         df = pd.read_csv("market.csv")
@@ -63,9 +64,16 @@ async def build_linear_or_candle_graph():
 
         # Отрисовывает сам график
         graph.get_graph()
-        return {'message': "Построен график с курсом интересующего актива."}
+        return JSONResponse(content={'message': "В новой вкладке построен график с "
+                                        "курсом интересующего актива."})
     except httpx.RequestError:
         raise HTTPException(status_code=400,
                             detail="Ошибка при попытке построения графика.")
 
-
+# @router_market.get("/build_graph")
+# async def get_stock_market():
+#     # TODO
+#     """
+#     Получить будущий прогноз курса акции с помощью временных рядов
+#     """
+#     pass
