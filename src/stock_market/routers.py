@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.db_config import MARKETSTACK
 from stock_market.graph import AssetPrice
+from stock_market.prop import Forecast
 
 
 router_market = APIRouter(
@@ -32,11 +33,11 @@ async def get_data_from_stock_market(tiker: str):
     url_marketstack = "http://api.marketstack.com/v1/eod" \
                       f"?access_key={MARKETSTACK}" \
                       f"&symbols={tiker}" \
-                      f"&date_from=2020-01-01" \
+                      f"&date_from=2017-01-01" \
                       f"&date_to={date_now}" \
-                      f"&limit=1000" \
-                      f"&total=1000" \
-                      f"&count=1000"
+                      f"&limit=1500" \
+                      f"&total=1500" \
+                      f"&count=1500"
     try:
         data = httpx.get(url_marketstack).json()["data"]
         df = pd.DataFrame(data,
@@ -56,11 +57,11 @@ async def build_linear_or_candle_graph():
     свечного графика.
     """
     try:
-        df = pd.read_csv("market.csv")
+        df = pd.read_csv("./market.csv")
 
         # Получаем тикер для вывода на графике.
         tiker_activ = df['symbol'][0]
-        graph = AssetPrice("market.csv", tiker_activ)
+        graph = AssetPrice("./market.csv", tiker_activ)
 
         # Отрисовывает сам график
         graph.get_graph()
@@ -70,10 +71,13 @@ async def build_linear_or_candle_graph():
         raise HTTPException(status_code=400,
                             detail="Ошибка при попытке построения графика.")
 
-# @router_market.get("/build_graph")
+# @router_market.get("/get_forecast")
 # async def get_stock_market():
-#     # TODO
 #     """
 #     Получить будущий прогноз курса акции с помощью временных рядов
 #     """
-#     pass
+#     try:
+#         Forecast.get_forecast()
+#     except:
+#         raise HTTPException(status_code=500,
+#                             detail="Ошибка при попытке построения графика.")
