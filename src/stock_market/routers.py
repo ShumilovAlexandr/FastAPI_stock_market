@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.db_config import MARKETSTACK
 from stock_market.graph import AssetPrice
-from stock_market.prop import Forecast
+from stock_market.prop import get_stock_forecast
 
 
 router_market = APIRouter(
@@ -43,7 +43,7 @@ async def get_data_from_stock_market(tiker: str):
         df = pd.DataFrame(data,
                           columns=["open", "high", "low", "close",
                                     "symbol", "date"])
-        df.to_csv('./market.csv', header=True, index=False)
+        df.to_csv('../market.csv', header=True, index=False)
         return data
     except httpx.RequestError:
         raise HTTPException(status_code=400,
@@ -53,15 +53,14 @@ async def get_data_from_stock_market(tiker: str):
 @router_market.get("/build_graph")
 async def build_linear_or_candle_graph():
     """
-    Получение ранее сохраненных данных из файла с директории и построение
-    свечного графика.
+    Метод для построения свечного графика. Нужен для наглядности отображения текущих котировок.
     """
     try:
-        df = pd.read_csv("./market.csv")
+        df = pd.read_csv("../market.csv")
 
         # Получаем тикер для вывода на графике.
         tiker_activ = df['symbol'][0]
-        graph = AssetPrice("./market.csv", tiker_activ)
+        graph = AssetPrice("../market.csv", tiker_activ)
 
         # Отрисовывает сам график
         graph.get_graph()
@@ -71,13 +70,13 @@ async def build_linear_or_candle_graph():
         raise HTTPException(status_code=400,
                             detail="Ошибка при попытке построения графика.")
 
-# @router_market.get("/get_forecast")
-# async def get_stock_market():
-#     """
-#     Получить будущий прогноз курса акции с помощью временных рядов
-#     """
-#     try:
-#         Forecast.get_forecast()
-#     except:
-#         raise HTTPException(status_code=500,
-#                             detail="Ошибка при попытке построения графика.")
+@router_market.get("/data/get_forecast")
+async def get_stock_market():
+    """
+    Получить будущий прогноз курса акции с помощью временных рядов
+    """
+    try:
+        await get_stock_forecast()
+    except:
+        raise HTTPException(status_code=500,
+                            detail="Ошибка при попытке построения графика.")
