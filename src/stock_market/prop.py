@@ -3,10 +3,7 @@ import csv
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from datetime import datetime
-
 from prophet import Prophet
-from prophet.plot import plot_components_plotly
 
 
 
@@ -22,10 +19,10 @@ async def get_new_csv_with_data():
     сохраняется в 'неправильном' формате). А полные данные, которые имеются
     в market.csv, также необходимы для построения корректного курса актива.
     """
-    with open('../new_market.csv', 'w+', newline='') as new:
+    with open('./new_market.csv', 'w+', newline='') as new:
         # Читаем данные из собранного csv файла с фондовыми данными
         try:
-            df_read = pd.read_csv('../market.csv')
+            df_read = pd.read_csv('./market.csv')
 
             data_price = df_read['close']
             data_date = []
@@ -43,15 +40,15 @@ async def get_new_csv_with_data():
                                "сначала нужно получить фондовые данные с "
                                "помощью метода get_data_from_stock_market()"}
 
-    df = pd.read_csv('../new_market.csv')
-    df.to_csv('../new_market.csv', header=headerlist, index=False)
+    df = pd.read_csv('./new_market.csv')
+    df.to_csv('./new_market.csv', header=headerlist, index=False)
     return
 
 async def get_stock_forecast():
     """Функция отображает прогноз на будущие периоды."""
     try:
         await get_new_csv_with_data()
-        df = pd.read_csv('src/new_market.csv')
+        df = pd.read_csv('./new_market.csv')
 
         # Преобразуем столбец с датой в объект datetime
         df['ds'] = pd.DatetimeIndex(df['ds'])
@@ -65,10 +62,10 @@ async def get_stock_forecast():
 
         future_dates['cap'] = 210
 
-
         forecast = prop.predict(future_dates)
         prop.plot(forecast)
         plt.show()
+
     except FileNotFoundError:
         return {"message": "Файл с актуальными фондовыми данными не найден. "
                            "Возможно, он отсутствует."}
