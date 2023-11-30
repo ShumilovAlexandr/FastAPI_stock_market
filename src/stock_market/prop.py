@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from prophet import Prophet
+from prophet.plot import add_changepoints_to_plot
 
 
 
@@ -49,21 +50,35 @@ async def get_stock_forecast():
     try:
         await get_new_csv_with_data()
         df = pd.read_csv('./new_market.csv')
-
         # Преобразуем столбец с датой в объект datetime
         df['ds'] = pd.DatetimeIndex(df['ds'])
             
-        prop = Prophet(growth="logistic")
-        df['cap'] = 210
-            
+        df['cap'] = 220
+        df['floor'] = 140
+
+        # Убираем из прогноза разкие выбросы
+        df.loc[(df['ds'] > '2022-11-30') & (df['ds'] < '2023-02-01')
+               & (df['ds'] > '2023-02-22') & (df['ds'] < '2023-03-13')
+               & (df['ds'] > '2023-08-15') & (df['ds'] < '2023-09-13')
+               & (df['ds'] > '2023-09-18') & (df['ds'] < '2023-11-06'), 'y'] = None
+
+
+        prop = Prophet(growth="logistic", 
+                       changepoint_prior_scale=0.005,
+                       seasonality_mode='multiplicative')
         prop.fit(df)
             
         future_dates = prop.make_future_dataframe(periods=365, freq='D')
 
-        future_dates['cap'] = 210
+        future_dates['cap'] = 220
+        future_dates['floor'] = 140
 
         forecast = prop.predict(future_dates)
-        prop.plot(forecast)
+
+        fig = prop.plot(forecast)
+        add_changepoints_to_plot(fig.gca(), prop, forecast)
+
+        prop.plot_components(forecast)
         plt.show()
 
     except FileNotFoundError:

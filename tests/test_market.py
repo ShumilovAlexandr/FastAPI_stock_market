@@ -51,5 +51,6 @@ from src.stock_market.routers import build_linear_or_candle_graph
 #     """
 #     response = client.get("/api-market/build_graph")
 #     assert response.status_code == 200
-#     assert await build_linear_or_candle_graph() == {'message': "Построен график с курсом интересующего актива."}
+#     assert await build_linear_or_candle_graph() ==
+#     {'message': "Построен график с курсом интересующего актива."}
 
